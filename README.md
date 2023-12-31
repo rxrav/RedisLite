@@ -20,7 +20,7 @@ Though it is a preview feature in this version, I have heavily used string templ
 
 ### Check out this project from GitHub 
 
-Run `https://github.com/rxrav/RedisLite.git` in git-scm
+Run `git clone https://github.com/rxrav/RedisLite.git` in git-scm
 
 ### Downloading dependencies
 

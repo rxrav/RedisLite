@@ -18,7 +18,6 @@ public class Resp2Serializer {
             STR."\{SIMPLE_STR}\{str}\{CRLF}";
         }
     }
-//    @Override
     public String serialize(RuntimeException error) {
         return STR."\{SIMPLE_ERR}\{error.getMessage()}\{CRLF}";
     }
