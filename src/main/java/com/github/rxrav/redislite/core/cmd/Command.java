@@ -3,7 +3,6 @@ package com.github.rxrav.redislite.core.cmd;
 import com.github.rxrav.redislite.core.error.ValidationError;
 
 public abstract class Command {
-    public static final String CMD_VALIDATION_ERR = "command validation error";
     private String cmd;
     private String[] args;
     protected Command() {}

@@ -4,7 +4,9 @@ import com.github.rxrav.redislite.core.cmd.impl.*;
 import com.github.rxrav.redislite.core.error.UnknownCommandError;
 import com.github.rxrav.redislite.core.ser.Resp2Deserializer;
 import com.github.rxrav.redislite.core.ser.Resp2Serializer;
+import com.github.rxrav.redislite.server.RedisLiteServer;
 
+import java.net.SocketException;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -17,7 +19,7 @@ public class CommandHandler {
         this.serializer = serializer;
         this.deserializer = deserializer;
     }
-    public String handleCommand(String command) {
+    public String handleCommand(String command) throws SocketException {
         char firstByte = command.charAt(0);
         if (firstByte != ARRAY) {
             return serializer.serialize(new RuntimeException("Command should be an array of bulk str"));
@@ -25,6 +27,7 @@ public class CommandHandler {
             try {
                 Object[] deserializedArray = deserializer.deserializeArray(command);
                 return switch (deserializedArray[0].toString().toUpperCase()) {
+                    case "EXIT" -> throw new SocketException("Disconnecting client");
                     case "PING" -> serializer.serialize(String.valueOf(new Ping().builder(deserializedArray).handle()), false);
                     case "ECHO" -> serializer.serialize(String.valueOf(new Echo().builder(deserializedArray).handle()), true);
                     case "SET" -> {
@@ -44,7 +47,7 @@ public class CommandHandler {
                     case "DECR" -> serializer.serialize((int) new Decr().builder(deserializedArray).handle());
                     case "LPUSH" -> serializer.serialize((int) new Lpush().builder(deserializedArray).handle());
                     case "LRANGE" -> {
-                        Object obj =new Lrange().builder(deserializedArray).handle();
+                        Object obj = new Lrange().builder(deserializedArray).handle();
                         List<String> list = ((ArrayList<?>) obj).stream().map(String::valueOf).toList();
                         String[] arr = new String[list.size()];
                         for(int i = 0; i < arr.length; i ++) {

@@ -15,6 +15,8 @@ import java.util.concurrent.*;
 import java.net.ServerSocket;
 import java.net.Socket;
 
+import static java.lang.StringTemplate.STR;
+
 public class RedisLiteServer {
     public static final int PORT = 6379;
     public static final String VN = "1.0";
@@ -25,6 +27,7 @@ public class RedisLiteServer {
     private final ExecutorService executorService;
     private final List<Socket> connectedClientList = new ArrayList<>();
     private boolean shouldAcceptConnections = true;
+
     public RedisLiteServer() {
         logger.info("Building server memory...");
         memory = new ConcurrentHashMap<>();
@@ -62,7 +65,7 @@ public class RedisLiteServer {
 
     public void start() throws IOException {
         registerShutdownHook();
-        this.serverSocket = new ServerSocket(6379);
+        this.serverSocket = new ServerSocket(PORT);
         logger.info(STR."Server started, RedisLite version \{VN}");
         try {
             logger.info(STR."The RedisLite server is now ready to accept connections on port \{PORT}");
@@ -70,7 +73,11 @@ public class RedisLiteServer {
             while (shouldAcceptConnections) {
                 Socket client = this.serverSocket.accept();
                 this.connectedClientList.add(client);
-                executorService.submit(() -> new RedisLiteConnHandler(client).handle());
+                executorService.submit(() -> {
+                    try {
+                        new RedisLiteConnHandler(client).handle();
+                    } catch (IOException _) {}
+                });
             }
         } catch (IOException e) {
             logger.info("Exited connection handler loop");

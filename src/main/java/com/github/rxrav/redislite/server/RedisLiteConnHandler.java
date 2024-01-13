@@ -17,24 +17,20 @@ public class RedisLiteConnHandler {
     public RedisLiteConnHandler(Socket clientSocket) {
         this.clientSocket = clientSocket;
     }
-    public void handle() {
+    public void handle() throws IOException {
         logger.debug("Client connected!");
         try (BufferedWriter writer = new BufferedWriter(new OutputStreamWriter(this.clientSocket.getOutputStream()));
              BufferedReader reader = new BufferedReader(new InputStreamReader(this.clientSocket.getInputStream(), StandardCharsets.UTF_8))) {
 
             char[] incoming = new char[1024];
             int nosOfBytesRead;
+
             while((nosOfBytesRead = reader.read(incoming)) > 0) {
                 StringBuilder builder = new StringBuilder();
                 for (int i = 0; i < nosOfBytesRead; i ++) {
                     builder.append(incoming[i]);
                 }
                 logger.debug(STR."Client sent: \{builder.toString()}");
-                if ("EXIT".equalsIgnoreCase(builder.toString())) {
-                    this.clientSocket.close();
-                    break;
-                }
-
                 Object cmdResp = new CommandHandler(
                         new Resp2Serializer(),
                         new Resp2Deserializer()
@@ -43,7 +39,8 @@ public class RedisLiteConnHandler {
                 writer.flush();
             }
         } catch (SocketException e) {
-            logger.debug("Client disconnected!");
+            logger.info("Client disconnection requested");
+            clientSocket.close();
         } catch (IOException e) {
             logger.error("RedisLite server unable to handle connection");
         }
