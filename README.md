@@ -75,7 +75,7 @@ which will contain, `redis-cli.exe` and `redis-benchmark.exe`. It will also cont
 Benchmarked performance of this RedisLite implementation in Java with `redis (redis-server.exe)`, details available in 
 this LinkedIn post https://www.linkedin.com/feed/update/urn:li:activity:7146891617956786178/
 
-Edit: After performance improvements at the source code level, this server can handle 20K+ requests more per second!
+Edit: After performance improvements at the source code level, this server can handle 60K+ requests per second, compared to ~42K requests previously.
 This was done simply by moving the hash maps into their own classes and accessing by reference, rather than having them as static variables in the server class :)
 
 *This has been tested on my HP Laptop (Intel Core i5 + 8GB, running Windows 10), keeping in mind Java's WORA principle, 
