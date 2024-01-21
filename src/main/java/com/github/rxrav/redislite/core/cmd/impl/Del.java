@@ -1,8 +1,8 @@
 package com.github.rxrav.redislite.core.cmd.impl;
 
+import com.github.rxrav.redislite.core.Memory;
 import com.github.rxrav.redislite.core.cmd.Command;
 import com.github.rxrav.redislite.core.error.ValidationError;
-import com.github.rxrav.redislite.server.RedisLiteServer;
 
 public class Del extends Command {
     @Override
@@ -12,10 +12,10 @@ public class Del extends Command {
     }
 
     @Override
-    protected Object execute() {
+    protected Object execute(Memory memoryRef) {
         int i = 0;
         for (String key: super.getArgs()) {
-            Object obj = RedisLiteServer.getMemoryMap().remove(key);
+            Object obj = memoryRef.getMainMemory().remove(key);
             if (obj != null) ++i;
         }
         return i;

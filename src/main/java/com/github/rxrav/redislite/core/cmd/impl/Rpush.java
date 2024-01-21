@@ -1,9 +1,9 @@
 package com.github.rxrav.redislite.core.cmd.impl;
 
+import com.github.rxrav.redislite.core.Memory;
 import com.github.rxrav.redislite.core.cmd.Command;
 import com.github.rxrav.redislite.core.error.ValidationError;
 import com.github.rxrav.redislite.core.error.WrongTypeError;
-import com.github.rxrav.redislite.server.RedisLiteServer;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -17,26 +17,26 @@ public class Rpush extends Command {
     }
 
     @Override
-    protected Object execute() {
+    protected Object execute(Memory memoryRef) {
         String key = super.getArgs()[0];
         String[] args = new String[super.getArgs().length-1];
         for (int i = 1; i < super.getArgs().length; i++) {
             args[i-1] = super.getArgs()[i];
         }
         ArrayList<String> newList;
-        if (RedisLiteServer.getMemoryMap().containsKey(key)) {
-            Object obj = RedisLiteServer.getMemoryMap().get(key);
+        if (memoryRef.getMainMemory().containsKey(key)) {
+            Object obj = memoryRef.getMainMemory().get(key);
             if (obj instanceof ArrayList) {
                 List<String> list = ((ArrayList<?>) obj).stream().map(String::valueOf).toList();
                 newList = new ArrayList<>(list);
                 newList.addAll(Arrays.asList(args));
-                RedisLiteServer.getMemoryMap().put(key, newList);
+                memoryRef.getMainMemory().put(key, newList);
             } else {
                 throw new WrongTypeError("Operation against a key holding the wrong kind of value");
             }
         } else {
             newList = new ArrayList<>(Arrays.asList(args));
-            RedisLiteServer.getMemoryMap().put(key, newList);
+            memoryRef.getMainMemory().put(key, newList);
         }
         return newList.size();
     }

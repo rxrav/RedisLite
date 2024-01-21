@@ -2,14 +2,13 @@ package com.github.rxrav.redislite.server;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.github.rxrav.redislite.core.ExpiryMetaData;
+import com.github.rxrav.redislite.core.Memory;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
 import java.io.*;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
 import java.util.concurrent.*;
 
 import java.net.ServerSocket;
@@ -20,8 +19,7 @@ import static java.lang.StringTemplate.STR;
 public class RedisLiteServer {
     public static final int PORT = 6379;
     public static final String VN = "1.0";
-    private static Map<String, Object> memory;
-    private static Map<String, ExpiryMetaData> expiryDetails;
+    private Memory memoryRef;
     private final Logger logger = LogManager.getLogger(RedisLiteServer.class);
     private ServerSocket serverSocket;
     private final ExecutorService executorService;
@@ -30,8 +28,7 @@ public class RedisLiteServer {
 
     public RedisLiteServer() {
         logger.info("Building server memory...");
-        memory = new ConcurrentHashMap<>();
-        expiryDetails = new ConcurrentHashMap<>();
+        this.memoryRef = new Memory();
         logger.info("Trying to restored db...");
         this.restoreDb();
         logger.info("Creating executor service...");
@@ -49,9 +46,9 @@ public class RedisLiteServer {
 
             String[] data = builder.toString().split("__SEPARATOR__");
             ObjectMapper mapper = new ObjectMapper();
-            memory = mapper.readValue(data[0], new TypeReference<>() {});
-            expiryDetails = mapper.readValue(data[1], new TypeReference<>() {});
-            if (!memory.isEmpty() || !expiryDetails.isEmpty()) {
+            this.memoryRef = mapper.readValue(data[0], new TypeReference<>() {});
+            this.memoryRef.setExpiryDetails(mapper.readValue(data[1], new TypeReference<>() {}));
+            if (!this.memoryRef.getMainMemory().isEmpty() || !this.memoryRef.getExpiryDetails().isEmpty()) {
                 logger.info("Data restored");
             } else {
                 logger.info("rdb file found, but nothing to restore");
@@ -75,7 +72,7 @@ public class RedisLiteServer {
                 this.connectedClientList.add(client);
                 executorService.submit(() -> {
                     try {
-                        new RedisLiteConnHandler(client).handle();
+                        new RedisLiteConnHandler(client, this.memoryRef).handle();
                     } catch (IOException _) {}
                 });
             }
@@ -106,12 +103,5 @@ public class RedisLiteServer {
         logger.info("Broke out of connection handler loop");
         serverSocket.close();
         logger.info("Connection closed. Bye.");
-    }
-
-    public static Map<String, Object> getMemoryMap() {
-        return memory;
-    }
-    public static Map<String, ExpiryMetaData> getExpiryDetailsMap() {
-        return expiryDetails;
     }
 }

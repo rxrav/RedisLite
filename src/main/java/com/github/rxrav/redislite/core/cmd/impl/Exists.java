@@ -1,8 +1,8 @@
 package com.github.rxrav.redislite.core.cmd.impl;
 
+import com.github.rxrav.redislite.core.Memory;
 import com.github.rxrav.redislite.core.cmd.Command;
 import com.github.rxrav.redislite.core.error.ValidationError;
-import com.github.rxrav.redislite.server.RedisLiteServer;
 
 public class Exists extends Command {
     @Override
@@ -12,10 +12,10 @@ public class Exists extends Command {
     }
 
     @Override
-    protected Object execute() {
+    protected Object execute(Memory memoryRef) {
         int i = 0;
         for (String key: super.getArgs()) {
-            if (RedisLiteServer.getMemoryMap().containsKey(key)) ++i;
+            if (memoryRef.getMainMemory().containsKey(key)) ++i;
         }
         return i;
     }

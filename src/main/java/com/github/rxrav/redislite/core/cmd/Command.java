@@ -1,5 +1,6 @@
 package com.github.rxrav.redislite.core.cmd;
 
+import com.github.rxrav.redislite.core.Memory;
 import com.github.rxrav.redislite.core.error.ValidationError;
 
 public abstract class Command {
@@ -7,10 +8,10 @@ public abstract class Command {
     private String[] args;
     protected Command() {}
     protected abstract void validate() throws ValidationError;
-    protected abstract Object execute();
-    protected final Object handle() throws ValidationError {
+    protected abstract Object execute(Memory memoryRef);
+    protected final Object handle(Memory memoryRef) throws ValidationError {
         this.validate();
-        return this.execute();
+        return this.execute(memoryRef);
     }
     public String getCmd() {
         return this.cmd;

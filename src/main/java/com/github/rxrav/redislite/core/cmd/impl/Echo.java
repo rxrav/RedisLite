@@ -1,5 +1,6 @@
 package com.github.rxrav.redislite.core.cmd.impl;
 
+import com.github.rxrav.redislite.core.Memory;
 import com.github.rxrav.redislite.core.cmd.Command;
 import com.github.rxrav.redislite.core.error.ValidationError;
 
@@ -11,7 +12,7 @@ public class Echo extends Command {
     }
 
     @Override
-    protected Object execute() {
+    protected Object execute(Memory memoryRef) {
         return super.getArgs()[0];
     }
 }

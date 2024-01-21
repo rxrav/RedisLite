@@ -1,9 +1,9 @@
 package com.github.rxrav.redislite.core.cmd.impl;
 
 import com.github.rxrav.redislite.core.ExpiryMetaData;
+import com.github.rxrav.redislite.core.Memory;
 import com.github.rxrav.redislite.core.cmd.Command;
 import com.github.rxrav.redislite.core.error.ValidationError;
-import com.github.rxrav.redislite.server.RedisLiteServer;
 
 import java.util.Date;
 
@@ -19,16 +19,16 @@ public class Get extends Command {
      * @return Value from the memory, or null
      */
     @Override
-    protected Object execute() {
+    protected Object execute(Memory memoryRef) {
         String key = super.getArgs()[0];
-        Object val = RedisLiteServer.getMemoryMap().get(key);
-        ExpiryMetaData expiryMetaData = RedisLiteServer.getExpiryDetailsMap().get(key);
+        Object val = memoryRef.getMainMemory().get(key);
+        ExpiryMetaData expiryMetaData = memoryRef.getExpiryDetails().get(key);
         boolean itHasExpired = (expiryMetaData != null) && hasExpired(expiryMetaData);
 
         if (val == null) return null;
         else if (itHasExpired) {
-            RedisLiteServer.getMemoryMap().remove(key);
-            RedisLiteServer.getExpiryDetailsMap().remove(key);
+            memoryRef.getMainMemory().remove(key);
+            memoryRef.getExpiryDetails().remove(key);
             return null;
         }
         else if (val instanceof String) return val.toString();

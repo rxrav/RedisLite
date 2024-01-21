@@ -1,14 +1,8 @@
 package com.github.rxrav.redislite.core.cmd.impl;
 
+import com.github.rxrav.redislite.core.Memory;
 import com.github.rxrav.redislite.core.cmd.Command;
-import com.github.rxrav.redislite.core.error.RedisLiteError;
 import com.github.rxrav.redislite.core.error.ValidationError;
-import com.github.rxrav.redislite.server.RedisLiteServer;
-
-import java.io.BufferedWriter;
-import java.io.FileWriter;
-import java.io.IOException;
-import java.util.Map;
 
 public class FlushAll extends Command {
     @Override
@@ -18,10 +12,10 @@ public class FlushAll extends Command {
     }
 
     @Override
-    protected Object execute() {
+    protected Object execute(Memory memoryRef) {
         try{
-            RedisLiteServer.getMemoryMap().clear();
-            RedisLiteServer.getExpiryDetailsMap().clear();
+            memoryRef.getMainMemory().clear();
+            memoryRef.getExpiryDetails().clear();
         } catch(Exception e) {
             System.out.println(e.getMessage());
             System.out.println(e.getClass());

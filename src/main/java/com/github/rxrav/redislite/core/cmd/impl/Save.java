@@ -1,18 +1,13 @@
 package com.github.rxrav.redislite.core.cmd.impl;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.github.rxrav.redislite.core.ExpiryMetaData;
+import com.github.rxrav.redislite.core.Memory;
 import com.github.rxrav.redislite.core.cmd.Command;
-import com.github.rxrav.redislite.core.error.RedisLiteError;
 import com.github.rxrav.redislite.core.error.ValidationError;
-import com.github.rxrav.redislite.server.RedisLiteServer;
 
 import java.io.BufferedWriter;
 import java.io.FileWriter;
 import java.io.IOException;
-import java.nio.charset.StandardCharsets;
-import java.util.Map;
 
 public class Save extends Command {
     @Override
@@ -22,14 +17,14 @@ public class Save extends Command {
     }
 
     @Override
-    protected Object execute() {
+    protected Object execute(Memory memoryRef) {
         String memData;
         String expMetaData;
         ObjectMapper objectMapper = new ObjectMapper();
 
         try {
-            memData = objectMapper.writeValueAsString(RedisLiteServer.getMemoryMap());
-            expMetaData = objectMapper.writeValueAsString(RedisLiteServer.getExpiryDetailsMap());
+            memData = objectMapper.writeValueAsString(memoryRef.getMainMemory());
+            expMetaData = objectMapper.writeValueAsString(memoryRef.getMainMemory());
             BufferedWriter writer = new BufferedWriter(new FileWriter("redisLiteDb.rdb"));
             writer.write(STR."\{memData}__SEPARATOR__\{expMetaData}");
             writer.close();

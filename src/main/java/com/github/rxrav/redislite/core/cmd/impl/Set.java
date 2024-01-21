@@ -1,16 +1,19 @@
 package com.github.rxrav.redislite.core.cmd.impl;
 
 import com.github.rxrav.redislite.core.ExpiryMetaData;
+import com.github.rxrav.redislite.core.Memory;
 import com.github.rxrav.redislite.core.cmd.Command;
 import com.github.rxrav.redislite.core.error.RedisLiteError;
 import com.github.rxrav.redislite.core.error.ValidationError;
-import com.github.rxrav.redislite.server.RedisLiteServer;
 
 import java.util.Date;
 import java.util.function.Predicate;
 
 public class Set extends Command {
-    public static final String REALLY_BIG_TIME_VAL = "100000000000";
+    public static final long REALLY_BIG_TIME_VAL = 100_000_000_000L;
+    private String optNxXx = "NONE";
+    private String optExPx = "NONE";
+    private long optTimeVal = REALLY_BIG_TIME_VAL;
     private final Predicate<String> isNxXx = (opt) -> "NX".equalsIgnoreCase(opt) || "XX".equalsIgnoreCase(opt);
     private final Predicate<String> isExPx = (opt) -> {
         if ("EX".equalsIgnoreCase(opt) || "PX".equalsIgnoreCase(opt)) return true;
@@ -41,10 +44,15 @@ public class Set extends Command {
         // hence starting from 2
         for (int i = 2; i < super.getArgs().length; i++) {
             if (isNxXx.test(super.getArgs()[i]) || isExPx.test(super.getArgs()[i])) {
+                if (isNxXx.test(super.getArgs()[i])) {
+                    this.optNxXx = super.getArgs()[i];
+                }
                 if (isExPx.test(super.getArgs()[i])) {
+                    this.optExPx = super.getArgs()[i];
+
                     try {
-                        long timeVal = Long.parseLong(super.getArgs()[i + 1]);
-                        if (timeVal <= 0) {
+                        this.optTimeVal = Long.parseLong(super.getArgs()[i + 1]);
+                        if (this.optTimeVal <= 0) {
                             throw new ValidationError(STR."Time is in past, can't use with \{super.getArgs()[i]}");
                         }
                     } catch (ArrayIndexOutOfBoundsException a) {
@@ -54,7 +62,7 @@ public class Set extends Command {
                     }
                 }
             } else if (IsNumber.test(super.getArgs()[i])) {
-                if (!isExPx.test(super.getArgs()[i - 1])) {
+                if (!isExPx.test(super.getArgs()[i - 1])) { // because a number can only be preceded by ex, px
                     throw new ValidationError("Misplaced number value");
                 }
             } else {
@@ -64,52 +72,36 @@ public class Set extends Command {
     }
 
     @Override
-    protected Object execute() {
+    protected Object execute(Memory memoryRef) {
         String key = super.getArgs()[0];
         String val = super.getArgs()[1];
 
-        String optNxXx = "NONE";
-        String optExPx = "NONE";
-        String optTimeVal = REALLY_BIG_TIME_VAL;
-
-        if (super.getArgs().length > 2) {
-            for (int i = 2; i < super.getArgs().length; i++) {
-                if (isNxXx.test(super.getArgs()[i])) {
-                    optNxXx = super.getArgs()[i];
-                }
-                if (isExPx.test(super.getArgs()[i])) {
-                    optExPx = super.getArgs()[i];
-                    optTimeVal = super.getArgs()[i + 1];
-                }
-            }
-        }
-
-        long timeout = switch (optExPx) {
-            case "EX", "ex" -> Long.parseLong(optTimeVal) * 1000;
-            case "PX", "px" -> Long.parseLong(optTimeVal);
-            default -> Long.parseLong(REALLY_BIG_TIME_VAL);
+        long timeout = switch (this.optExPx) {
+            case "EX", "ex" -> this.optTimeVal * 1000;
+            case "PX", "px" -> this.optTimeVal;
+            default -> REALLY_BIG_TIME_VAL;
         };
 
-        switch (optNxXx) {
+        switch (this.optNxXx) {
             case "XX", "xx" -> {
-                if (RedisLiteServer.getMemoryMap().containsKey(key)) {
-                    RedisLiteServer.getMemoryMap().put(key, val);
-                    RedisLiteServer.getExpiryDetailsMap().put(key, new ExpiryMetaData(new Date().getTime(), timeout));
+                if (memoryRef.getMainMemory().containsKey(key)) {
+                    memoryRef.getMainMemory().put(key, val);
+                    memoryRef.getExpiryDetails().put(key, new ExpiryMetaData(new Date().getTime(), timeout));
                 } else {
                     return null;
                 }
             }
             case "NX", "nx" -> {
-                if (!RedisLiteServer.getMemoryMap().containsKey(key)) {
-                    RedisLiteServer.getMemoryMap().put(key, val);
-                    RedisLiteServer.getExpiryDetailsMap().put(key, new ExpiryMetaData(new Date().getTime(), timeout));
+                if (!memoryRef.getMainMemory().containsKey(key)) {
+                    memoryRef.getMainMemory().put(key, val);
+                    memoryRef.getExpiryDetails().put(key, new ExpiryMetaData(new Date().getTime(), timeout));
                 } else {
                     return null;
                 }
             }
             default -> {
-                RedisLiteServer.getMemoryMap().put(key, val);
-                RedisLiteServer.getExpiryDetailsMap().put(key, new ExpiryMetaData(new Date().getTime(), timeout));
+                memoryRef.getMainMemory().put(key, val);
+                memoryRef.getExpiryDetails().put(key, new ExpiryMetaData(new Date().getTime(), timeout));
             }
         }
         return "OK";

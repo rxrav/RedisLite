@@ -1,5 +1,6 @@
 package com.github.rxrav.redislite.server;
 
+import com.github.rxrav.redislite.core.Memory;
 import com.github.rxrav.redislite.core.cmd.CommandHandler;
 import com.github.rxrav.redislite.core.ser.Resp2Deserializer;
 import com.github.rxrav.redislite.core.ser.Resp2Serializer;
@@ -14,8 +15,10 @@ import java.nio.charset.StandardCharsets;
 public class RedisLiteConnHandler {
     private final Logger logger = LogManager.getLogger(RedisLiteConnHandler.class);
     private final Socket clientSocket;
-    public RedisLiteConnHandler(Socket clientSocket) {
+    private final Memory memoryRef;
+    public RedisLiteConnHandler(Socket clientSocket, Memory memoryRef) {
         this.clientSocket = clientSocket;
+        this.memoryRef = memoryRef;
     }
     public void handle() throws IOException {
         logger.debug("Client connected!");
@@ -33,7 +36,8 @@ public class RedisLiteConnHandler {
                 logger.debug(STR."Client sent: \{builder.toString()}");
                 Object cmdResp = new CommandHandler(
                         new Resp2Serializer(),
-                        new Resp2Deserializer()
+                        new Resp2Deserializer(),
+                        memoryRef
                 ).handleCommand(builder.toString());
                 writer.write(cmdResp.toString());
                 writer.flush();
