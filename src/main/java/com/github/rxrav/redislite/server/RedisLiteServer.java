@@ -2,19 +2,20 @@ package com.github.rxrav.redislite.server;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.github.rxrav.redislite.core.Constants;
 import com.github.rxrav.redislite.core.Memory;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
 import java.io.*;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.*;
 
 import java.net.ServerSocket;
 import java.net.Socket;
-
-import static java.lang.StringTemplate.STR;
 
 public class RedisLiteServer {
     public static final int PORT = 6379;
@@ -37,25 +38,24 @@ public class RedisLiteServer {
     }
 
     private void restoreDb() {
-        StringBuilder builder = new StringBuilder();
-        try (BufferedReader reader = new BufferedReader(new FileReader("redisLiteDb.rdb"))) {
-            String line;
-            while ((line = reader.readLine()) != null) {
-                builder.append(line);
-            }
+        try {
+            File file = new File(Constants.DAT_FILE_NAME_AT_CURRENT_PATH);
+            if (file.exists()) {
+                byte[] fileContent = Files.readAllBytes(file.toPath());
+                String fileContentStr = new String(fileContent, StandardCharsets.UTF_8);
 
-            String[] data = builder.toString().split("__SEPARATOR__");
-            ObjectMapper mapper = new ObjectMapper();
-            this.memoryRef = mapper.readValue(data[0], new TypeReference<>() {});
-            this.memoryRef.setExpiryDetails(mapper.readValue(data[1], new TypeReference<>() {}));
-            if (!this.memoryRef.getMainMemory().isEmpty() || !this.memoryRef.getExpiryDetails().isEmpty()) {
-                logger.info("Data restored");
+                String[] data = fileContentStr.split(Constants.SEPARATOR);
+                ObjectMapper mapper = new ObjectMapper();
+                this.memoryRef.setMainMemory(mapper.readValue(data[0], new TypeReference<>() {}));
+                this.memoryRef.setExpiryDetails(mapper.readValue(data[1], new TypeReference<>() {}));
+                if (!this.memoryRef.getMainMemory().isEmpty() || !this.memoryRef.getExpiryDetails().isEmpty()) {
+                    logger.info("Data restored");
+                }
             } else {
                 logger.info("rdb file found, but nothing to restore");
             }
-        } catch (FileNotFoundException e) {
-            logger.info("Nothing to restore");
-        } catch (IOException e) {
+        } catch (IOException | RuntimeException e) {
+            logger.error("Error while restoring: ", e);
             throw new RuntimeException(e);
         }
     }
