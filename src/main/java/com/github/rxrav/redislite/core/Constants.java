@@ -12,9 +12,7 @@ public class Constants {
     public static final char BULK_STR = '$';
     public static final char ARRAY = '*';
 
-    // commands
-    public static final String PING = "PING";
-    public static final String ECHO = "ECHO";
-    public static final String SET = "SET";
-    public static final String GET = "GET";
+    // others
+    public static final String SEPARATOR = "\n__SEP__\n";
+    public static final String DAT_FILE_NAME_AT_CURRENT_PATH = "./redisLiteDb.bytes";
 }
