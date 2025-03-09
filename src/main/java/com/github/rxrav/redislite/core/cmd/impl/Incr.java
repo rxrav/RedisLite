@@ -7,6 +7,8 @@ import com.github.rxrav.redislite.core.cmd.Command;
 import com.github.rxrav.redislite.core.error.ValidationError;
 import com.github.rxrav.redislite.core.error.WrongTypeError;
 
+import java.io.UnsupportedEncodingException;
+
 public class Incr extends Command {
     @Override
     protected void validate() throws ValidationError {
@@ -15,23 +17,25 @@ public class Incr extends Command {
     }
 
     @Override
-    protected ValueWrapper execute(Memory memoryRef) {
+    protected ValueWrapper execute(Memory memoryRef) throws UnsupportedEncodingException {
         int iVal = 0;
         String key = super.getArgs()[0];
-        if (memoryRef.getMainMemory().containsKey(key)) {
-            try {ValueWrapper valW = memoryRef.getMainMemory().get(key);
+        if (memoryRef.has(key)) {
+            try {ValueWrapper valW = memoryRef.get(key);
                 if (valW.getValueType() == ValueType.NUMBER) {
                     iVal = (int) valW.getValue();
-                    memoryRef.getMainMemory().put(key, new ValueWrapper(++iVal, ValueType.NUMBER));
+                    memoryRef.putData(key, new ValueWrapper(++iVal, ValueType.NUMBER));
                     return new ValueWrapper(iVal, ValueType.NUMBER);
                 } else {
                     throw new NumberFormatException();
                 }
             } catch (NumberFormatException e) {
                 throw new WrongTypeError("Not a valid number type");
+            } catch (UnsupportedEncodingException e) {
+                throw new RuntimeException(e);
             }
         } else {
-            memoryRef.getMainMemory().put(key, new ValueWrapper(++iVal, ValueType.NUMBER));
+            memoryRef.putData(key, new ValueWrapper(++iVal, ValueType.NUMBER));
             return new ValueWrapper(iVal, ValueType.NUMBER);
         }
     }

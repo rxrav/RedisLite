@@ -8,6 +8,7 @@ import com.github.rxrav.redislite.core.error.UnknownCommandError;
 import com.github.rxrav.redislite.core.ser.Resp2Deserializer;
 import com.github.rxrav.redislite.core.ser.Resp2Serializer;
 
+import java.io.UnsupportedEncodingException;
 import java.net.SocketException;
 import java.util.ArrayList;
 import java.util.List;
@@ -69,6 +70,8 @@ public class CommandHandler {
                 };
             } catch (RuntimeException e) {
                 return serializer.serialize(e);
+            } catch (UnsupportedEncodingException e) {
+                return serializer.serialize(new RuntimeException(e));
             }
         }
     }

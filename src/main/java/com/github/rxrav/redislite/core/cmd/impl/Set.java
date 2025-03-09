@@ -1,6 +1,6 @@
 package com.github.rxrav.redislite.core.cmd.impl;
 
-import com.github.rxrav.redislite.core.ExpiryMetaData;
+import com.github.rxrav.redislite.core.ExpiryMetadata;
 import com.github.rxrav.redislite.core.Memory;
 import com.github.rxrav.redislite.core.ValueType;
 import com.github.rxrav.redislite.core.ValueWrapper;
@@ -8,6 +8,7 @@ import com.github.rxrav.redislite.core.cmd.Command;
 import com.github.rxrav.redislite.core.error.RedisLiteError;
 import com.github.rxrav.redislite.core.error.ValidationError;
 
+import java.io.UnsupportedEncodingException;
 import java.util.Date;
 import java.util.function.Predicate;
 
@@ -76,7 +77,7 @@ public class Set extends Command {
     }
 
     @Override
-    protected ValueWrapper execute(Memory memoryRef) {
+    protected ValueWrapper execute(Memory memoryRef) throws UnsupportedEncodingException {
         String key = super.getArgs()[0];
         String val = super.getArgs()[1];
 
@@ -99,14 +100,14 @@ public class Set extends Command {
 
         switch (this.optNxXx) {
             case "XX", "xx" -> {
-                if (memoryRef.getMainMemory().containsKey(key)) {
+                if (memoryRef.has(key)) {
                     set(memoryRef, valType, key, iVal, sVal, timeout);
                 } else {
                     return null;
                 }
             }
             case "NX", "nx" -> {
-                if (!memoryRef.getMainMemory().containsKey(key)) {
+                if (!memoryRef.has(key)) {
                     set(memoryRef, valType, key, iVal, sVal, timeout);
                 } else {
                     return null;
@@ -119,12 +120,12 @@ public class Set extends Command {
         return new ValueWrapper("OK", ValueType.STRING);
     }
 
-    private static void set(Memory memoryRef, ValueType valType, String key, int iVal, String sVal, long timeout) {
+    private static void set(Memory memoryRef, ValueType valType, String key, int iVal, String sVal, long timeout) throws UnsupportedEncodingException {
         if (valType == ValueType.NUMBER) {
-            memoryRef.getMainMemory().put(key, new ValueWrapper(iVal, ValueType.NUMBER));
+            memoryRef.putData(key, new ValueWrapper(iVal, ValueType.NUMBER));
         } else {
-            memoryRef.getMainMemory().put(key, new ValueWrapper(sVal, ValueType.STRING));
+            memoryRef.putData(key, new ValueWrapper(sVal, ValueType.STRING));
         }
-        memoryRef.getExpiryDetails().put(key, new ExpiryMetaData(new Date().getTime(), timeout));
+        memoryRef.putExpiryData(key, new ExpiryMetadata(new Date().getTime(), timeout));
     }
 }

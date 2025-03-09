@@ -16,8 +16,7 @@ public class FlushAll extends Command {
     @Override
     protected ValueWrapper execute(Memory memoryRef) {
         try{
-            memoryRef.getMainMemory().clear();
-            memoryRef.getExpiryDetails().clear();
+            memoryRef.fullFlush();
         } catch(Exception e) {
             System.out.println(e.getMessage());
             System.out.println(e.getClass());

@@ -7,6 +7,7 @@ import com.github.rxrav.redislite.core.cmd.Command;
 import com.github.rxrav.redislite.core.error.ValidationError;
 import com.github.rxrav.redislite.core.error.WrongTypeError;
 
+import java.io.UnsupportedEncodingException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -19,7 +20,7 @@ public class Rpush extends Command {
     }
 
     @Override
-    protected ValueWrapper execute(Memory memoryRef) {
+    protected ValueWrapper execute(Memory memoryRef) throws UnsupportedEncodingException {
         String key = super.getArgs()[0];
         String[] args = new String[super.getArgs().length-1];
 
@@ -29,19 +30,19 @@ public class Rpush extends Command {
 
         ArrayList<String> newList;
 
-        if (memoryRef.getMainMemory().containsKey(key)) {
-            ValueWrapper obj = memoryRef.getMainMemory().get(key);
+        if (memoryRef.has(key)) {
+            ValueWrapper obj = memoryRef.get(key);
             if (obj.getValueType() == ValueType.LIST) {
                 List<String> list = ((ArrayList<?>) obj.getValue()).stream().map(String::valueOf).toList();
                 newList = new ArrayList<>(list);
                 newList.addAll(Arrays.asList(args));
-                memoryRef.getMainMemory().put(key, new ValueWrapper(newList, ValueType.LIST));
+                memoryRef.putData(key, new ValueWrapper(newList, ValueType.LIST));
             } else {
                 throw new WrongTypeError("Operation against a key holding the wrong kind of value");
             }
         } else {
             newList = new ArrayList<>(Arrays.asList(args));
-            memoryRef.getMainMemory().put(key, new ValueWrapper(newList, ValueType.LIST));
+            memoryRef.putData(key, new ValueWrapper(newList, ValueType.LIST));
         }
         return new ValueWrapper(newList.size(), ValueType.NUMBER);
     }

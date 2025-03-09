@@ -31,8 +31,8 @@ public class Lrange extends Command {
     protected ValueWrapper execute(Memory memoryRef) {
         String key = super.getArgs()[0];
 
-        if (memoryRef.getMainMemory().containsKey(key)) {
-            ValueWrapper obj = memoryRef.getMainMemory().get(key);
+        if (memoryRef.has(key)) {
+            ValueWrapper obj = memoryRef.get(key);
             if (obj.getValueType() == ValueType.LIST) {
                 List<String> list = ((ArrayList<?>) obj.getValue()).stream().map(String::valueOf).toList();
                 ArrayList<String> aList = new ArrayList<>(list);
