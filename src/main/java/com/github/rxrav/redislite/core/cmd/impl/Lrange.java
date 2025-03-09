@@ -1,6 +1,8 @@
 package com.github.rxrav.redislite.core.cmd.impl;
 
 import com.github.rxrav.redislite.core.Memory;
+import com.github.rxrav.redislite.core.ValueType;
+import com.github.rxrav.redislite.core.ValueWrapper;
 import com.github.rxrav.redislite.core.cmd.Command;
 import com.github.rxrav.redislite.core.error.ValidationError;
 import com.github.rxrav.redislite.core.error.WrongTypeError;
@@ -26,21 +28,21 @@ public class Lrange extends Command {
     }
 
     @Override
-    protected Object execute(Memory memoryRef) {
+    protected ValueWrapper execute(Memory memoryRef) {
         String key = super.getArgs()[0];
 
         if (memoryRef.getMainMemory().containsKey(key)) {
-            Object obj = memoryRef.getMainMemory().get(key);
-            if (obj instanceof ArrayList) {
-                List<String> list = ((ArrayList<?>) obj).stream().map(String::valueOf).toList();
+            ValueWrapper obj = memoryRef.getMainMemory().get(key);
+            if (obj.getValueType() == ValueType.LIST) {
+                List<String> list = ((ArrayList<?>) obj.getValue()).stream().map(String::valueOf).toList();
                 ArrayList<String> aList = new ArrayList<>(list);
                 if (this.startIdx > aList.size() || this.startIdx > this.endIdx) this.startIdx = 0;
                 if (this.endIdx < this.startIdx || this.endIdx > aList.size()) this.endIdx = aList.size();
-                return new ArrayList<>(aList.subList(this.startIdx, this.endIdx));
+                return new ValueWrapper(new ArrayList<>(aList.subList(this.startIdx, this.endIdx)), ValueType.LIST);
             }
-            return new WrongTypeError("Key is not mapped to a list");
+            throw new WrongTypeError("Key is not mapped to a list");
         } else {
-            return new ArrayList<>();
+            return new ValueWrapper(new ArrayList<>(), ValueType.LIST);
         }
     }
 }

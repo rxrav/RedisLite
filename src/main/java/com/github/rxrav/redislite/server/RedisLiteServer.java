@@ -18,9 +18,10 @@ import java.net.ServerSocket;
 import java.net.Socket;
 
 public class RedisLiteServer {
+
     public static final int PORT = 6379;
     public static final String VN = "1.0";
-    private Memory memoryRef;
+    private final Memory memoryRef;
     private final Logger logger = LogManager.getLogger(RedisLiteServer.class);
     private ServerSocket serverSocket;
     private final ExecutorService executorService;
@@ -49,10 +50,10 @@ public class RedisLiteServer {
                 this.memoryRef.setMainMemory(mapper.readValue(data[0], new TypeReference<>() {}));
                 this.memoryRef.setExpiryDetails(mapper.readValue(data[1], new TypeReference<>() {}));
                 if (!this.memoryRef.getMainMemory().isEmpty() || !this.memoryRef.getExpiryDetails().isEmpty()) {
-                    logger.info("Data restored");
+                    logger.info("Data restored from backup file");
                 }
             } else {
-                logger.info("rdb file found, but nothing to restore");
+                logger.info("Backup file not found, but nothing to restore");
             }
         } catch (IOException | RuntimeException e) {
             logger.error("Error while restoring: ", e);

@@ -1,6 +1,8 @@
 package com.github.rxrav.redislite.core.cmd.impl;
 
 import com.github.rxrav.redislite.core.Memory;
+import com.github.rxrav.redislite.core.ValueType;
+import com.github.rxrav.redislite.core.ValueWrapper;
 import com.github.rxrav.redislite.core.cmd.Command;
 import com.github.rxrav.redislite.core.error.ValidationError;
 import com.github.rxrav.redislite.core.error.WrongTypeError;
@@ -17,28 +19,31 @@ public class Rpush extends Command {
     }
 
     @Override
-    protected Object execute(Memory memoryRef) {
+    protected ValueWrapper execute(Memory memoryRef) {
         String key = super.getArgs()[0];
         String[] args = new String[super.getArgs().length-1];
+
         for (int i = 1; i < super.getArgs().length; i++) {
             args[i-1] = super.getArgs()[i];
         }
+
         ArrayList<String> newList;
+
         if (memoryRef.getMainMemory().containsKey(key)) {
-            Object obj = memoryRef.getMainMemory().get(key);
-            if (obj instanceof ArrayList) {
-                List<String> list = ((ArrayList<?>) obj).stream().map(String::valueOf).toList();
+            ValueWrapper obj = memoryRef.getMainMemory().get(key);
+            if (obj.getValueType() == ValueType.LIST) {
+                List<String> list = ((ArrayList<?>) obj.getValue()).stream().map(String::valueOf).toList();
                 newList = new ArrayList<>(list);
                 newList.addAll(Arrays.asList(args));
-                memoryRef.getMainMemory().put(key, newList);
+                memoryRef.getMainMemory().put(key, new ValueWrapper(newList, ValueType.LIST));
             } else {
                 throw new WrongTypeError("Operation against a key holding the wrong kind of value");
             }
         } else {
             newList = new ArrayList<>(Arrays.asList(args));
-            memoryRef.getMainMemory().put(key, newList);
+            memoryRef.getMainMemory().put(key, new ValueWrapper(newList, ValueType.LIST));
         }
-        return newList.size();
+        return new ValueWrapper(newList.size(), ValueType.NUMBER);
     }
 }
 

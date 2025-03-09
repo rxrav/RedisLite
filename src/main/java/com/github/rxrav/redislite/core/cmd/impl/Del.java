@@ -1,6 +1,8 @@
 package com.github.rxrav.redislite.core.cmd.impl;
 
 import com.github.rxrav.redislite.core.Memory;
+import com.github.rxrav.redislite.core.ValueType;
+import com.github.rxrav.redislite.core.ValueWrapper;
 import com.github.rxrav.redislite.core.cmd.Command;
 import com.github.rxrav.redislite.core.error.ValidationError;
 
@@ -12,13 +14,13 @@ public class Del extends Command {
     }
 
     @Override
-    protected Object execute(Memory memoryRef) {
+    protected ValueWrapper execute(Memory memoryRef) {
         int i = 0;
         for (String key: super.getArgs()) {
-            Object obj = memoryRef.getMainMemory().remove(key);
+            ValueWrapper obj = memoryRef.getMainMemory().remove(key);
             if (obj != null) ++i;
         }
-        return i;
+        return new ValueWrapper(i, ValueType.NUMBER);
     }
 }
 

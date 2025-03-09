@@ -1,6 +1,8 @@
 package com.github.rxrav.redislite.core.cmd.impl;
 
 import com.github.rxrav.redislite.core.Memory;
+import com.github.rxrav.redislite.core.ValueType;
+import com.github.rxrav.redislite.core.ValueWrapper;
 import com.github.rxrav.redislite.core.cmd.Command;
 import com.github.rxrav.redislite.core.error.ValidationError;
 
@@ -12,7 +14,7 @@ public class FlushAll extends Command {
     }
 
     @Override
-    protected Object execute(Memory memoryRef) {
+    protected ValueWrapper execute(Memory memoryRef) {
         try{
             memoryRef.getMainMemory().clear();
             memoryRef.getExpiryDetails().clear();
@@ -21,6 +23,9 @@ public class FlushAll extends Command {
             System.out.println(e.getClass());
         }
 
-        return "OK (Note, this doesn't clear any rdb files. After 'flushall', run 'save' to save current memory state";
+        return new ValueWrapper("""
+    OK (Note, this doesn't clear any file created using 'save' command.
+    After 'flushall', run 'save' to save current memory state""",
+                ValueType.STRING);
     }
 }

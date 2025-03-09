@@ -13,19 +13,22 @@ import java.net.SocketException;
 import java.nio.charset.StandardCharsets;
 
 public class RedisLiteConnHandler {
+    private static final int MAX_BUFFER_SIZE = 4096;
     private final Logger logger = LogManager.getLogger(RedisLiteConnHandler.class);
     private final Socket clientSocket;
     private final Memory memoryRef;
+
     public RedisLiteConnHandler(Socket clientSocket, Memory memoryRef) {
         this.clientSocket = clientSocket;
         this.memoryRef = memoryRef;
     }
+
     public void handle() throws IOException {
         logger.debug("Client connected!");
         try (BufferedWriter writer = new BufferedWriter(new OutputStreamWriter(this.clientSocket.getOutputStream()));
              BufferedReader reader = new BufferedReader(new InputStreamReader(this.clientSocket.getInputStream(), StandardCharsets.UTF_8))) {
 
-            char[] incoming = new char[1024];
+            char[] incoming = new char[MAX_BUFFER_SIZE];
             int nosOfBytesRead;
 
             while((nosOfBytesRead = reader.read(incoming)) > 0) {

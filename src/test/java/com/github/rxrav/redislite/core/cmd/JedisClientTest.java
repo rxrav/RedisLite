@@ -373,7 +373,7 @@ public class JedisClientTest {
         try(Jedis jedis = new Jedis("127.0.0.1", 6379);) {
             jedis.set("name-del", "john");
             long k = jedis.del("name-del");
-            assertEquals(k, 1);
+            assertEquals(1, k);
         } catch (Exception e) {
             logger.error(e.getMessage());
             throw e;
@@ -387,7 +387,7 @@ public class JedisClientTest {
             jedis.set("name-del2", "jim");
             jedis.set("name-del3", "jane");
             long k = jedis.del("name-del1", "name-del2", "name-del3");
-            assertEquals(k, 3);
+            assertEquals(3, k);
         } catch (Exception e) {
             logger.error(e.getMessage());
             throw e;
@@ -399,7 +399,7 @@ public class JedisClientTest {
         try(Jedis jedis = new Jedis("127.0.0.1", 6379);) {
             jedis.set("incr1", "1");
             long k = jedis.incr("incr1");
-            assertEquals(k, 2);
+            assertEquals(2, k);
         } catch (Exception e) {
             logger.error(e.getMessage());
             throw e;
@@ -410,7 +410,7 @@ public class JedisClientTest {
     void shouldSetToZeroAndIncrByOne() {
         try(Jedis jedis = new Jedis("127.0.0.1", 6379);) {
             long k = jedis.incr("incr-none");
-            assertEquals(k, 1);
+            assertEquals(1, k);
         } catch (Exception e) {
             logger.error(e.getMessage());
             throw e;
@@ -436,7 +436,7 @@ public class JedisClientTest {
         try(Jedis jedis = new Jedis("127.0.0.1", 6379);) {
             jedis.set("decr1", "2");
             long k = jedis.decr("decr1");
-            assertEquals(k, 1);
+            assertEquals(1, k);
         } catch (Exception e) {
             logger.error(e.getMessage());
             throw e;
@@ -447,7 +447,7 @@ public class JedisClientTest {
     void shouldSetToZeroAndDecrByOne() {
         try(Jedis jedis = new Jedis("127.0.0.1", 6379);) {
             long k = jedis.decr("decr-none");
-            assertEquals(k, -1);
+            assertEquals(-1, k);
         } catch (Exception e) {
             logger.error(e.getMessage());
             throw e;
@@ -472,7 +472,7 @@ public class JedisClientTest {
     void shouldLpush() {
         try(Jedis jedis = new Jedis("127.0.0.1", 6379);) {
             long k = jedis.lpush("lpushok", "1", "2", "3");
-            assertEquals(k, 3);
+            assertEquals(3, k);
         } catch (Exception e) {
             logger.error(e.getMessage());
             throw e;
@@ -484,7 +484,7 @@ public class JedisClientTest {
         try(Jedis jedis = new Jedis("127.0.0.1", 6379);) {
             jedis.lpush("lpushok1", "1", "2", "3");
             long k = jedis.lpush("lpushok1", "4", "5");
-            assertEquals(k, 5);
+            assertEquals(5, k);
         } catch (Exception e) {
             logger.error(e.getMessage());
             throw e;
@@ -508,7 +508,7 @@ public class JedisClientTest {
     void shouldRpush() {
         try(Jedis jedis = new Jedis("127.0.0.1", 6379);) {
             long k = jedis.rpush("rpushok", "1", "2", "3");
-            assertEquals(k, 3);
+            assertEquals(3, k);
         } catch (Exception e) {
             logger.error(e.getMessage());
             throw e;
@@ -520,7 +520,7 @@ public class JedisClientTest {
         try(Jedis jedis = new Jedis("127.0.0.1", 6379);) {
             jedis.lpush("rpushok1", "1", "2", "3");
             long k = jedis.rpush("rpushok1", "4", "5");
-            assertEquals(k, 5);
+            assertEquals(5, k);
         } catch (Exception e) {
             logger.error(e.getMessage());
             throw e;

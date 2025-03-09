@@ -2,15 +2,17 @@ package com.github.rxrav.redislite.core.cmd.impl;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.github.rxrav.redislite.core.Memory;
+import com.github.rxrav.redislite.core.ValueType;
+import com.github.rxrav.redislite.core.ValueWrapper;
 import com.github.rxrav.redislite.core.cmd.Command;
 import com.github.rxrav.redislite.core.error.ValidationError;
 import com.github.rxrav.redislite.core.Constants;
-import org.apache.logging.log4j.core.util.ArrayUtils;
 
 import java.io.*;
 import java.nio.charset.StandardCharsets;
 
 public class Save extends Command {
+
     @Override
     protected void validate() throws ValidationError {
         if (!"SAVE".equalsIgnoreCase(super.getCmd())) throw new ValidationError("Not correct use of 'save' command!");
@@ -18,7 +20,7 @@ public class Save extends Command {
     }
 
     @Override
-    protected Object execute(Memory memoryRef) {
+    protected ValueWrapper execute(Memory memoryRef) {
         String memData;
         String expMetaData;
         ObjectMapper objectMapper = new ObjectMapper();
@@ -34,7 +36,7 @@ public class Save extends Command {
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
-        return "OK";
+        return new ValueWrapper("OK", ValueType.STRING);
     }
 }
 

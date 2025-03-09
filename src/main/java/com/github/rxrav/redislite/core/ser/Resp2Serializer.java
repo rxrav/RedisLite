@@ -3,6 +3,7 @@ package com.github.rxrav.redislite.core.ser;
 import static com.github.rxrav.redislite.core.Constants.*;
 
 public class Resp2Serializer {
+
     public String serialize(String str, boolean isBulk) {
         if (isBulk) {
             if (str == null) {
@@ -18,12 +19,15 @@ public class Resp2Serializer {
             STR."\{SIMPLE_STR}\{str}\{CRLF}";
         }
     }
+
     public String serialize(RuntimeException error) {
         return STR."\{SIMPLE_ERR}\{error.getMessage()}\{CRLF}";
     }
+
     public String serialize(int integer) {
         return STR."\{INTEGER}\{integer}\{CRLF}";
     }
+
     public String serialize(Object[] arr) {
         String des = STR."\{ARRAY}";
         if (arr == null) {
