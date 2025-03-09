@@ -17,7 +17,7 @@ public class Del extends Command {
     protected ValueWrapper execute(Memory memoryRef) {
         int i = 0;
         for (String key: super.getArgs()) {
-            ValueWrapper obj = memoryRef.getMainMemory().remove(key);
+            ValueWrapper obj = memoryRef.remove(key);
             if (obj != null) ++i;
         }
         return new ValueWrapper(i, ValueType.NUMBER);

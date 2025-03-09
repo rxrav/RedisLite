@@ -1,6 +1,6 @@
 package com.github.rxrav.redislite.core.cmd.impl;
 
-import com.github.rxrav.redislite.core.ExpiryMetaData;
+import com.github.rxrav.redislite.core.ExpiryMetadata;
 import com.github.rxrav.redislite.core.Memory;
 import com.github.rxrav.redislite.core.ValueType;
 import com.github.rxrav.redislite.core.ValueWrapper;
@@ -25,14 +25,13 @@ public class Get extends Command {
     @Override
     protected ValueWrapper execute(Memory memoryRef) {
         String key = super.getArgs()[0];
-        ValueWrapper obj = memoryRef.getMainMemory().get(key);
-        ExpiryMetaData expiryMetaData = memoryRef.getExpiryDetails().get(key);
-        boolean itHasExpired = (expiryMetaData != null) && hasExpired(expiryMetaData);
+        ValueWrapper obj = memoryRef.get(key);
+        ExpiryMetadata expiryMetadata = memoryRef.getExpMd(key);
+        boolean itHasExpired = (expiryMetadata != null) && hasExpired(expiryMetadata);
 
         if (obj == null) return null;
         else if (itHasExpired) {
-            memoryRef.getMainMemory().remove(key);
-            memoryRef.getExpiryDetails().remove(key);
+            memoryRef.remove(key);
             return null;
         }
         else if (obj.getValueType() == ValueType.STRING) return new ValueWrapper(obj.getValue().toString(), ValueType.STRING);
@@ -40,7 +39,7 @@ public class Get extends Command {
         else throw new WrongTypeError();
     }
 
-    private static boolean hasExpired(ExpiryMetaData expiryMetaData) {
-        return new Date().getTime() - expiryMetaData.getSetAt() > expiryMetaData.getValidFor();
+    private static boolean hasExpired(ExpiryMetadata expiryMetadata) {
+        return new Date().getTime() - expiryMetadata.getSetAt() > expiryMetadata.getValidFor();
     }
 }

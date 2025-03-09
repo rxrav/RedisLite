@@ -17,7 +17,7 @@ public class Exists extends Command {
     protected ValueWrapper execute(Memory memoryRef) {
         int i = 0;
         for (String key: super.getArgs()) {
-            if (memoryRef.getMainMemory().containsKey(key)) ++i;
+            if (memoryRef.has(key)) ++i;
         }
         return new ValueWrapper(i, ValueType.NUMBER);
     }

@@ -26,8 +26,8 @@ public class Save extends Command {
         ObjectMapper objectMapper = new ObjectMapper();
 
         try {
-            memData = objectMapper.writeValueAsString(memoryRef.getMainMemory());
-            expMetaData = objectMapper.writeValueAsString(memoryRef.getExpiryDetails());
+            memData = objectMapper.writeValueAsString(memoryRef.getMainMemorySnapshot());
+            expMetaData = objectMapper.writeValueAsString(memoryRef.getExpiryMetadataRefSnapshot());
             String dataToSave = STR."\{memData}\{Constants.SEPARATOR}\{expMetaData}";
             try (FileOutputStream fos = new FileOutputStream(Constants.DAT_FILE_NAME_AT_CURRENT_PATH)) {
                 fos.write(dataToSave.getBytes(StandardCharsets.UTF_8));

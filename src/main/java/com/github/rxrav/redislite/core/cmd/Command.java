@@ -4,6 +4,8 @@ import com.github.rxrav.redislite.core.Memory;
 import com.github.rxrav.redislite.core.ValueWrapper;
 import com.github.rxrav.redislite.core.error.ValidationError;
 
+import java.io.UnsupportedEncodingException;
+
 public abstract class Command {
     private String cmd;
     private String[] args;
@@ -11,9 +13,9 @@ public abstract class Command {
     protected Command() {}
 
     protected abstract void validate() throws ValidationError;
-    protected abstract ValueWrapper execute(Memory memoryRef);
+    protected abstract ValueWrapper execute(Memory memoryRef) throws UnsupportedEncodingException;
 
-    protected final ValueWrapper handle(Memory memoryRef) throws ValidationError {
+    protected final ValueWrapper handle(Memory memoryRef) throws ValidationError, UnsupportedEncodingException {
         this.validate();
         return this.execute(memoryRef);
     }

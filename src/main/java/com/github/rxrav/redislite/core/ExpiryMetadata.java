@@ -1,12 +1,12 @@
 package com.github.rxrav.redislite.core;
 
-public class ExpiryMetaData {
+public class ExpiryMetadata {
     private long setAt;
     private long validFor;
 
-    public ExpiryMetaData() {}
+    public ExpiryMetadata() {}
 
-    public ExpiryMetaData(long setAt, long validFor) {
+    public ExpiryMetadata(long setAt, long validFor) {
         this.setAt = setAt;
         this.validFor = validFor;
     }

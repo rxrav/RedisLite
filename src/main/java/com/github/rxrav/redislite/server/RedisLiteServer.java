@@ -48,8 +48,9 @@ public class RedisLiteServer {
                 String[] data = fileContentStr.split(Constants.SEPARATOR);
                 ObjectMapper mapper = new ObjectMapper();
                 this.memoryRef.setMainMemory(mapper.readValue(data[0], new TypeReference<>() {}));
-                this.memoryRef.setExpiryDetails(mapper.readValue(data[1], new TypeReference<>() {}));
-                if (!this.memoryRef.getMainMemory().isEmpty() || !this.memoryRef.getExpiryDetails().isEmpty()) {
+                this.memoryRef.setExpiryMetadataRef(mapper.readValue(data[1], new TypeReference<>() {}));
+                if (!this.memoryRef.getMainMemorySnapshot().isEmpty() ||
+                        !this.memoryRef.getExpiryMetadataRefSnapshot().isEmpty()) {
                     logger.info("Data restored from backup file");
                 }
             } else {
