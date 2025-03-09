@@ -3,6 +3,7 @@ package com.github.rxrav.redislite.core.ser;
 import static com.github.rxrav.redislite.core.Constants.*;
 
 public class Resp2Deserializer {
+
     public String deserializeString(String msg) {
         var type = msg.charAt(0);
         return switch (type) {
@@ -11,6 +12,7 @@ public class Resp2Deserializer {
             default -> throw new IllegalStateException(STR."Unexpected value: \{type}");
         };
     }
+
     public RuntimeException deserializeError(String msg) {
         var type = msg.charAt(0);
         if (type == SIMPLE_ERR) return parseSimpleError(msg);
@@ -22,14 +24,17 @@ public class Resp2Deserializer {
         if (type == INTEGER) return parseInteger(msg);
         throw new IllegalStateException(STR."Unexpected value: \{type}");
     }
+
     public Object[] deserializeArray(String msg) {
         var type = msg.charAt(0);
         if (type == ARRAY) return parseArray(msg);
         throw new IllegalStateException(STR."Unexpected value: \{type}");
     }
+
     private int parseInteger(String msg) {
         return Integer.parseInt(msg.substring(1, msg.lastIndexOf(CRLF)));
     }
+
     private static Object[] parseArray(String msg) {
         var tokens = msg.split(CRLF);
         var arrSize = Integer.parseInt(tokens[0].substring(1));
@@ -49,13 +54,16 @@ public class Resp2Deserializer {
         }
         return items;
     }
+
     private RuntimeException parseSimpleError(String msg) {
         return new RuntimeException(msg.substring(1, msg.lastIndexOf(CRLF)));
     }
+
     private String parseBulkString(String msg) {
         if (STR."$-1\{CRLF}".equals(msg)) return null;
         return msg.substring(msg.indexOf(CRLF), msg.lastIndexOf(CRLF)).trim();
     }
+
     private String parseSimpleString(String msg) {
         System.out.println(msg);
         return msg.substring(1, msg.indexOf(CRLF));

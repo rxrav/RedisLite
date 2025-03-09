@@ -14,5 +14,5 @@ public class Constants {
 
     // others
     public static final String SEPARATOR = "\n__SEP__\n";
-    public static final String DAT_FILE_NAME_AT_CURRENT_PATH = "./redisLiteDb.bytes";
+    public static final String DAT_FILE_NAME_AT_CURRENT_PATH = "./redisLiteDb.backup";
 }

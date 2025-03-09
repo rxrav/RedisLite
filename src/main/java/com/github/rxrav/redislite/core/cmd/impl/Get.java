@@ -2,12 +2,16 @@ package com.github.rxrav.redislite.core.cmd.impl;
 
 import com.github.rxrav.redislite.core.ExpiryMetaData;
 import com.github.rxrav.redislite.core.Memory;
+import com.github.rxrav.redislite.core.ValueType;
+import com.github.rxrav.redislite.core.ValueWrapper;
 import com.github.rxrav.redislite.core.cmd.Command;
 import com.github.rxrav.redislite.core.error.ValidationError;
+import com.github.rxrav.redislite.core.error.WrongTypeError;
 
 import java.util.Date;
 
 public class Get extends Command {
+
     @Override
     protected void validate() throws ValidationError {
         if (!"GET".equalsIgnoreCase(super.getCmd())) throw new ValidationError("Not correct use of 'get' command!");
@@ -19,21 +23,21 @@ public class Get extends Command {
      * @return Value from the memory, or null
      */
     @Override
-    protected Object execute(Memory memoryRef) {
+    protected ValueWrapper execute(Memory memoryRef) {
         String key = super.getArgs()[0];
-        Object val = memoryRef.getMainMemory().get(key);
+        ValueWrapper obj = memoryRef.getMainMemory().get(key);
         ExpiryMetaData expiryMetaData = memoryRef.getExpiryDetails().get(key);
         boolean itHasExpired = (expiryMetaData != null) && hasExpired(expiryMetaData);
 
-        if (val == null) return null;
+        if (obj == null) return null;
         else if (itHasExpired) {
             memoryRef.getMainMemory().remove(key);
             memoryRef.getExpiryDetails().remove(key);
             return null;
         }
-        else if (val instanceof String) return val.toString();
-        else if (val instanceof Integer) return Integer.parseInt(val.toString());
-        else return null;
+        else if (obj.getValueType() == ValueType.STRING) return new ValueWrapper(obj.getValue().toString(), ValueType.STRING);
+        else if (obj.getValueType() == ValueType.NUMBER) return new ValueWrapper(Integer.valueOf(obj.getValue().toString()), ValueType.NUMBER);
+        else throw new WrongTypeError();
     }
 
     private static boolean hasExpired(ExpiryMetaData expiryMetaData) {

@@ -2,6 +2,8 @@ package com.github.rxrav.redislite.core.cmd.impl;
 
 import com.github.rxrav.redislite.core.ExpiryMetaData;
 import com.github.rxrav.redislite.core.Memory;
+import com.github.rxrav.redislite.core.ValueType;
+import com.github.rxrav.redislite.core.ValueWrapper;
 import com.github.rxrav.redislite.core.cmd.Command;
 import com.github.rxrav.redislite.core.error.RedisLiteError;
 import com.github.rxrav.redislite.core.error.ValidationError;
@@ -14,7 +16,9 @@ public class Set extends Command {
     private String optNxXx = "NONE";
     private String optExPx = "NONE";
     private long optTimeVal = REALLY_BIG_TIME_VAL;
+
     private final Predicate<String> isNxXx = (opt) -> "NX".equalsIgnoreCase(opt) || "XX".equalsIgnoreCase(opt);
+
     private final Predicate<String> isExPx = (opt) -> {
         if ("EX".equalsIgnoreCase(opt) || "PX".equalsIgnoreCase(opt)) return true;
         if ("EXAT".equalsIgnoreCase(opt) || "PXAT".equalsIgnoreCase(opt))
@@ -72,7 +76,7 @@ public class Set extends Command {
     }
 
     @Override
-    protected Object execute(Memory memoryRef) {
+    protected ValueWrapper execute(Memory memoryRef) {
         String key = super.getArgs()[0];
         String val = super.getArgs()[1];
 
@@ -82,28 +86,45 @@ public class Set extends Command {
             default -> REALLY_BIG_TIME_VAL;
         };
 
+        int iVal = 0;
+        String sVal = "";
+        ValueType valType;
+        try {
+            iVal = Integer.parseInt(val);
+            valType = ValueType.NUMBER; 
+        } catch (NumberFormatException e) {
+            sVal = val;
+            valType = ValueType.STRING;
+        }
+
         switch (this.optNxXx) {
             case "XX", "xx" -> {
                 if (memoryRef.getMainMemory().containsKey(key)) {
-                    memoryRef.getMainMemory().put(key, val);
-                    memoryRef.getExpiryDetails().put(key, new ExpiryMetaData(new Date().getTime(), timeout));
+                    set(memoryRef, valType, key, iVal, sVal, timeout);
                 } else {
                     return null;
                 }
             }
             case "NX", "nx" -> {
                 if (!memoryRef.getMainMemory().containsKey(key)) {
-                    memoryRef.getMainMemory().put(key, val);
-                    memoryRef.getExpiryDetails().put(key, new ExpiryMetaData(new Date().getTime(), timeout));
+                    set(memoryRef, valType, key, iVal, sVal, timeout);
                 } else {
                     return null;
                 }
             }
             default -> {
-                memoryRef.getMainMemory().put(key, val);
-                memoryRef.getExpiryDetails().put(key, new ExpiryMetaData(new Date().getTime(), timeout));
+                set(memoryRef, valType, key, iVal, sVal, timeout);
             }
         }
-        return "OK";
+        return new ValueWrapper("OK", ValueType.STRING);
+    }
+
+    private static void set(Memory memoryRef, ValueType valType, String key, int iVal, String sVal, long timeout) {
+        if (valType == ValueType.NUMBER) {
+            memoryRef.getMainMemory().put(key, new ValueWrapper(iVal, ValueType.NUMBER));
+        } else {
+            memoryRef.getMainMemory().put(key, new ValueWrapper(sVal, ValueType.STRING));
+        }
+        memoryRef.getExpiryDetails().put(key, new ExpiryMetaData(new Date().getTime(), timeout));
     }
 }

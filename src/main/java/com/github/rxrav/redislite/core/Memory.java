@@ -4,7 +4,7 @@ import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
 public class Memory {
-    private Map<String, Object> mainMemory;
+    private Map<String, ValueWrapper> mainMemory;
     private Map<String, ExpiryMetaData> expiryDetails;
 
     public Memory() {
@@ -12,11 +12,11 @@ public class Memory {
         this.expiryDetails = new ConcurrentHashMap<>();
     }
 
-    public Map<String, Object> getMainMemory() {
+    public Map<String, ValueWrapper> getMainMemory() {
         return mainMemory;
     }
 
-    public void setMainMemory(Map<String, Object> mainMemory) {
+    public void setMainMemory(Map<String, ValueWrapper> mainMemory) {
         this.mainMemory = mainMemory;
     }
 
