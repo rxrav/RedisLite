@@ -42,6 +42,7 @@ public class RedisLiteServer {
         try {
             File file = new File(Constants.DAT_FILE_NAME_AT_CURRENT_PATH);
             if (file.exists()) {
+                logger.info("Backup file found...");
                 byte[] fileContent = Files.readAllBytes(file.toPath());
                 String fileContentStr = new String(fileContent, StandardCharsets.UTF_8);
 
@@ -54,7 +55,7 @@ public class RedisLiteServer {
                     logger.info("Data restored from backup file");
                 }
             } else {
-                logger.info("Backup file not found, but nothing to restore");
+                logger.info("Backup file not found, nothing to restore");
             }
         } catch (IOException | RuntimeException e) {
             logger.error("Error while restoring: ", e);
