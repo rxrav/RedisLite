@@ -9,8 +9,6 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
 public class FlushAll extends Command {
-    private final Logger logger = LogManager.getLogger(FlushAll.class);
-
     @Override
     protected void validate() throws ValidationError {
         if (!"FLUSHALL".equalsIgnoreCase(super.getCmd())) throw new ValidationError("Not correct use of 'flushall' command!");
