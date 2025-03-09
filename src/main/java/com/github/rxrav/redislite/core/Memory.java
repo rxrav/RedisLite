@@ -1,5 +1,8 @@
 package com.github.rxrav.redislite.core;
 
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+
 import java.io.UnsupportedEncodingException;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
@@ -8,30 +11,22 @@ import java.util.concurrent.ConcurrentHashMap;
 
 public class Memory {
 
-    enum Op {
-        INC,
-        DEC,
-    }
+    private final Logger logger = LogManager.getLogger(Memory.class);
 
-    private long totalSizeInBytes;
+    private final long allowedMemory;
+
     private Map<String, ValueWrapper> mainMemory;
     private Map<String, ExpiryMetadata> expiryMetadataRef;
 
     public Memory() {
-        this.totalSizeInBytes = 0;
+        long maxMemory = Runtime.getRuntime().maxMemory();
+        logger.info(STR."Runtime started with [\{maxMemory}] bytes of memory");
+
+        allowedMemory = (long) (maxMemory * Constants.PERMITTED_MAIN_MEMORY_THRESHOLD);
+        logger.info(STR."Server allowed to store data till [\{allowedMemory}] bytes of memory");
+
         this.mainMemory = new ConcurrentHashMap<>();
         this.expiryMetadataRef = new ConcurrentHashMap<>();
-    }
-
-    private synchronized void updateSize(int size, Op op) {
-        if (op == Op.INC) {
-            this.totalSizeInBytes += size;
-        } else if (op == Op.DEC) {
-            this.totalSizeInBytes -= size;
-            if (this.totalSizeInBytes < 0) {
-                this.totalSizeInBytes = 0;
-            }
-        }
     }
 
     public void setMainMemory(Map<String, ValueWrapper> mainMemory) {
@@ -43,37 +38,19 @@ public class Memory {
     }
 
     public void putData(String key, ValueWrapper value) throws UnsupportedEncodingException {
-        int sizeInBytes = getSizeInBytes(value);
-
-        if (isMemoryLeft(sizeInBytes)) {
+        if (isMemoryLeft()) {
             this.mainMemory.put(key, value);
-            this.updateSize(sizeInBytes, Op.INC);
         } else {
             throw new RuntimeException("Memory full!");
         }
     }
 
-    private static int getSizeInBytes(ValueWrapper value) {
-        int sizeInBytes = 0;
-        if (value.getValueType() == ValueType.NUMBER) {
-            sizeInBytes = 8;
-        } else if (value.getValueType() == ValueType.STRING) {
-            sizeInBytes = value.getValue().toString().getBytes(StandardCharsets.UTF_8).length;
-        } else if (value.getValueType() == ValueType.LIST) {
-            var list = (ArrayList<?>) value.getValue();
-            for (Object o: list) {
-                sizeInBytes += o.toString().getBytes(StandardCharsets.UTF_8).length;
-            }
-        }
-        return sizeInBytes;
+    private boolean isMemoryLeft() {
+        return this.allowedMemory > Runtime.getRuntime().freeMemory();
     }
 
-    private boolean isMemoryLeft(int sizeInBytes) {
-        return Constants.PERMITTED_MAIN_MEMORY_SIZE_IN_BYTES - this.totalSizeInBytes >= sizeInBytes;
-    }
-
-    public void putExpiryData(String key, ExpiryMetadata expiryMd) {
-        this.expiryMetadataRef.put(key, expiryMd);
+    public void putExpiryData(String key, ExpiryMetadata expiryMetadata) {
+        this.expiryMetadataRef.put(key, expiryMetadata);
     }
 
     public boolean has(String key) {
@@ -85,14 +62,8 @@ public class Memory {
     }
 
     public ValueWrapper remove(String key) {
-        ValueWrapper value = this.mainMemory.get(key);
-        int sizeInBytes = getSizeInBytes(value);
-
         this.expiryMetadataRef.remove(key);
-        ValueWrapper removedValue = this.mainMemory.remove(key);
-        this.expiryMetadataRef.remove(key);
-        this.updateSize(sizeInBytes, Op.DEC);
-        return removedValue;
+        return this.mainMemory.remove(key);
     }
 
     public void fullFlush() {
