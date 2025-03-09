@@ -5,6 +5,8 @@ import com.github.rxrav.redislite.core.ValueType;
 import com.github.rxrav.redislite.core.ValueWrapper;
 import com.github.rxrav.redislite.core.cmd.Command;
 import com.github.rxrav.redislite.core.error.ValidationError;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 public class FlushAll extends Command {
     @Override
@@ -15,13 +17,7 @@ public class FlushAll extends Command {
 
     @Override
     protected ValueWrapper execute(Memory memoryRef) {
-        try{
-            memoryRef.fullFlush();
-        } catch(Exception e) {
-            System.out.println(e.getMessage());
-            System.out.println(e.getClass());
-        }
-
+        memoryRef.fullFlush();
         return new ValueWrapper("""
     OK (Note, this doesn't clear any file created using 'save' command.
     After 'flushall', run 'save' to save current memory state""",
